@@ -25,19 +25,24 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const toyCollection = client.db('toyStore').collection('toys');
 
         // toy collection
         app.get('/toys', async (req, res) => {
-            const cursor = toyCollection.find();
+            console.log(req.query.seller_email);
+            let query = {};
+            if (req.query?.seller_email) {
+                query = { seller_email: req.query.seller_email }
+            }
+            const cursor = toyCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);
         })
         // toy collection
 
-        app.post('/toys', async(req,res) =>{
+        app.post('/toys', async (req, res) => {
             const addToys = req.body;
             console.log(addToys);
             const result = await toyCollection.insertOne(addToys);
