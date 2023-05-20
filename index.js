@@ -31,12 +31,12 @@ async function run() {
 
         // toy collection
         app.get('/toys', async (req, res) => {
-            console.log(req.query.seller_email);
             let query = {};
             if (req.query?.seller_email) {
                 query = { seller_email: req.query.seller_email }
             }
-            const cursor = toyCollection.find(query);
+            const sort = req.query?.sort ? parseInt(req.query.sort) : 1; // Default to ascending order
+            const cursor = toyCollection.find(query).sort({ price: sort });
             const result = await cursor.toArray();
             res.send(result);
         })
@@ -59,12 +59,26 @@ async function run() {
         // delete operation
 
         // update operation
-        app.get('/toys/:id', async (req, res) => {
+       
+        app.put('/toys/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { _id: new ObjectId(id) }
-            const result = await toyCollection.findOne(query);
-            res.send(result)
-        })
+            const updatedToy = req.body;
+            const query = { _id: new ObjectId(id) };
+            const update = {
+                $set: {
+                    price: updatedToy.price,
+                    available_quantity: updatedToy.available_quantity,
+                    description: updatedToy.description,
+                },
+            };
+            const options = { returnOriginal: false };
+            const result = await toyCollection.findOneAndUpdate(
+                query,
+                update,
+                options
+            );
+            res.send(result.value);
+        });
         // update operation
 
         // Send a ping to confirm a successful connection
